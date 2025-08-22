@@ -33,7 +33,7 @@ stress-level-app/
 ### 1. Clone Repository
 Silahkan Clone/Pull Repository terlebih dahulu ke server lokal mu.
 ```bash
-git clone https://github.com/<username>/stress-level-app.git
+git clone https://github.com/<username>/DINI-Sehat-Mental.git
 ```
 Kemudian masuk ke dalam folder root untuk backend dan frontend yang sudah dibuat.
 ```bash
