@@ -11,8 +11,9 @@ export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    axios.get<Post[]>("http://127.0.0.1:8000/api/posts")
-      .then(res => setPosts(res.data));
+    axios
+      .get<Post[]>("http://127.0.0.1:8000/api/posts")
+      .then((res) => setPosts(res.data));
   }, []);
 
   return (
@@ -26,8 +27,8 @@ export default function Home() {
           <p className="text-gray-500 text-center">Belum ada postingan.</p>
         ) : (
           posts.map((post) => (
-            <div 
-              key={post.id} 
+            <div
+              key={post.id}
               className="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition"
             >
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
