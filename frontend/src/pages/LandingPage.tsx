@@ -24,7 +24,7 @@ export default function LandingPage() {
             <h1 className="text-3xl md:text-4xl font-bold text-slate-800">
               Sistem Analisis{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500">
-                Stress Kerja
+                Screening Stress Kerja
               </span>
             </h1>
           </div>

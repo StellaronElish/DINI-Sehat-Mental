@@ -21,7 +21,7 @@ export default function Results() {
           <CheckCircle className="text-green-600 w-6 h-6" />
           <div>
             <h1 className="text-lg font-bold text-green-700">
-              Analisis Stress Kerja Selesai!
+              Analisis Screening Stress Kerja Selesai!
             </h1>
             <p className="text-sm text-gray-700">
               Terima kasih telah mengisi survey lengkap. Berikut hasil analisis
