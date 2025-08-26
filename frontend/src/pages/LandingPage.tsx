@@ -40,7 +40,7 @@ export default function LandingPage() {
               <p className="text-xs text-slate-600">Pertanyaan Komprehensif</p>
             </div>
             <div className="rounded-xl border bg-white px-4 py-3 text-center shadow-sm">
-              <p className="text-2xl font-bold text-green-600">11</p>
+              <p className="text-2xl font-bold text-green-600">9</p>
               <p className="text-xs text-slate-600">Kategori Evaluasi</p>
             </div>
             <div className="rounded-xl border bg-white px-4 py-3 text-center shadow-sm">

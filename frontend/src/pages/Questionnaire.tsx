@@ -1,113 +1,413 @@
 // src/pages/Questionnaire.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { categories } from "../data/categories";
 import { questions } from "../data/questions";
 import { calculateScores } from "../utils/Scoring";
 
 export default function Questionnaire() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [error, setError] = useState<string | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showResult, setShowResult] = useState(false);
 
-  const handleAnswer = (id: number, value: string) => {
-    setAnswers((prev) => ({ ...prev, [id]: value }));
-    setError(null); // clear error kalau user mulai jawab
-  };
-
+  const currentQuestion = questions[currentQuestionIndex];
+  const category = categories[currentQuestion?.category];
   const progress = Math.round(
-    (Object.keys(answers).length / questions.length) * 100
+    ((currentQuestionIndex + 1) / questions.length) * 100
   );
 
-  const handleSubmit = () => {
-    if (Object.keys(answers).length < questions.length) {
-      setError("Harap isi semua pertanyaan sebelum mengirim survey.");
-      return;
-    }
+  // Get category order and details
+  const categoryOrder = Object.keys(categories);
+  const currentCategoryIndex =
+    categoryOrder.indexOf(currentQuestion?.category) + 1;
+  const totalCategories = categoryOrder.length;
 
-    // hitung skor dulu
+  // Check if we need to show category instruction
+  const isFirstQuestionInCategory =
+    currentQuestionIndex === 0 ||
+    questions[currentQuestionIndex - 1]?.category !== currentQuestion?.category;
+
+  const handleAnswer = (value: string) => {
+    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
+
+    // Auto advance after a short delay
+    setTimeout(() => {
+      if (currentQuestionIndex < questions.length - 1) {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentQuestionIndex((prev) => prev + 1);
+          setIsTransitioning(false);
+        }, 300);
+      } else {
+        // Last question - show completion
+        setShowResult(true);
+      }
+    }, 600);
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentQuestionIndex((prev) => prev - 1);
+        setIsTransitioning(false);
+      }, 300);
+    }
+  };
+
+  const handleSubmit = () => {
     const scores = calculateScores(answers);
     console.log("Skor per kategori:", scores);
-
-    // sementara redirect ke results
+    // Redirect to results
     window.location.href = "/results";
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-800">
-            Kuesioner Stres Kerja
-          </h1>
-          <p className="text-sm text-gray-600">Progress: {progress}%</p>
-        </div>
-
-        {/* Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-blue-600 h-2 rounded-full transition-all"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        {/* Group pertanyaan per kategori */}
-        {Object.entries(categories).map(([cat, data]) => (
-          <div key={cat} className="space-y-6">
-            {questions.some((q) => q.category === cat) && (
-              <div className="p-4 bg-gray-100 rounded-lg border">
-                <p className="text-sm text-gray-700 italic">
-                  {data.instruction}
-                </p>
-              </div>
-            )}
-
-            {questions
-              .filter((q) => q.category === cat)
-              .map((q) => (
-                <div
-                  key={q.id}
-                  className="p-5 bg-white rounded-xl shadow border space-y-4"
-                >
-                  <p className="font-medium text-gray-800">
-                    {q.id}. {q.text}
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    {data.options.map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => handleAnswer(q.id, opt)}
-                        className={`px-4 py-2 rounded-lg border text-sm ${
-                          answers[q.id] === opt
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
+  if (showResult) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-md mx-auto text-center space-y-6 sm:space-y-8 bg-white p-8 sm:p-12 rounded-3xl shadow-sm border border-gray-100">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
+            <svg
+              className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
           </div>
-        ))}
 
-        {/* Error message kalau belum lengkap */}
-        {error && (
-          <div className="text-center">
-            <p className="text-red-600 text-sm font-medium bg-red-100 px-4 py-2 rounded-lg inline-block">
-              {error}
+          <div className="space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Terima kasih!
+            </h2>
+            <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+              Anda telah menyelesaikan semua{" "}
+              <span className="font-semibold text-gray-900">
+                {questions.length}
+              </span>{" "}
+              pertanyaan dengan baik.
             </p>
           </div>
-        )}
 
-        {/* Submit */}
-        <div className="flex justify-center">
           <button
             onClick={handleSubmit}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium"
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-2xl font-semibold transition-colors text-sm sm:text-base"
           >
-            Selesai & Lihat Hasil
+            Lihat Hasil Analisis
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 flex-shrink-0">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Kuesioner Stres Kerja
+            </h1>
+
+            {/* Progress info */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-sm text-gray-600">
+              <span>
+                Pertanyaan {currentQuestionIndex + 1} dari {questions.length}
+              </span>
+              <div className="hidden sm:block w-1 h-1 bg-gray-400 rounded-full"></div>
+              <span>{progress}% selesai</span>
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full max-w-sm sm:max-w-md mx-auto">
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1">
+          {/* Category instruction */}
+          {isFirstQuestionInCategory && (
+            <div
+              className={`mb-8 sm:mb-12 transition-all duration-300 ${
+                isTransitioning
+                  ? "opacity-0 transform translate-y-4"
+                  : "opacity-100 transform translate-y-0"
+              }`}
+            >
+              <div className="bg-blue-50 border border-blue-100 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+                <div className="flex items-start sm:items-center gap-3 mb-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-blue-900 text-sm sm:text-base">
+                    Instruksi
+                  </span>
+                </div>
+                <p className="text-blue-800 leading-relaxed text-sm sm:text-base">
+                  {category?.instruction}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Question */}
+          <div
+            className={`transition-all duration-300 ${
+              isTransitioning
+                ? "opacity-0 transform translate-y-8"
+                : "opacity-100 transform translate-y-0"
+            }`}
+          >
+            {/* Question header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gray-900 text-white rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+                  <span className="font-bold text-lg sm:text-xl">
+                    {currentQuestion?.id}
+                  </span>
+                </div>
+                <div className="space-y-1 min-w-0">
+                  <div className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
+                    Kategori
+                  </div>
+                  <div className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm font-medium truncate">
+                    {currentQuestion?.category}
+                  </div>
+                </div>
+              </div>
+
+              {/* Category progress indicator - hidden on mobile */}
+              <div className="hidden lg:block text-right flex-shrink-0">
+                <div className="text-xs text-gray-500 mb-2">
+                  Progress Kategori
+                </div>
+                <div className="flex items-center justify-end gap-1">
+                  {questions
+                    .filter((q) => q.category === currentQuestion?.category)
+                    .map((q, idx) => {
+                      const isAnswered = answers[q.id];
+                      const isCurrent = q.id === currentQuestion?.id;
+                      return (
+                        <div
+                          key={q.id}
+                          className={`w-3 h-3 rounded-full transition-all ${
+                            isCurrent
+                              ? "bg-blue-500 ring-2 ring-blue-200"
+                              : isAnswered
+                              ? "bg-emerald-400"
+                              : "bg-gray-300"
+                          }`}
+                        />
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
+
+            {/* Question text */}
+            <div className="mb-8 sm:mb-12">
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 leading-relaxed">
+                {currentQuestion?.text}
+              </h2>
+            </div>
+
+            {/* Answer options */}
+            <div className="space-y-3 sm:space-y-4">
+              {category?.options.map((option, index) => (
+                <button
+                  key={option}
+                  onClick={() => handleAnswer(option)}
+                  className={`w-full p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 text-left transition-all duration-200 group ${
+                    answers[currentQuestion?.id] === option
+                      ? "bg-blue-50 border-blue-500 text-blue-900"
+                      : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-900"
+                  }`}
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-base sm:text-lg pr-4">
+                      {option}
+                    </span>
+                    <div
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                        answers[currentQuestion?.id] === option
+                          ? "border-blue-500 bg-blue-500"
+                          : "border-gray-300 group-hover:border-gray-400"
+                      }`}
+                    >
+                      {answers[currentQuestion?.id] === option && (
+                        <svg
+                          className="w-3 h-3 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Navigation */}
+      <div className="border-t border-gray-200 bg-white flex-shrink-0">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex items-center justify-between gap-4">
+            {/* Previous button */}
+            <button
+              onClick={handlePrevious}
+              disabled={currentQuestionIndex === 0}
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl transition-all text-sm sm:text-base ${
+                currentQuestionIndex === 0
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              }`}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              <span className="hidden sm:inline">Kembali</span>
+            </button>
+
+            {/* Clean progress bar - Fixed width to prevent overflow */}
+            <div className="flex items-center justify-center flex-shrink-0">
+              <div className="bg-gray-100 rounded-full p-1">
+                <div className="flex items-center gap-1">
+                  {/* Show max 4 segments on mobile, 6 on desktop */}
+                  {[
+                    ...Array(
+                      window.innerWidth < 640
+                        ? Math.min(
+                            4,
+                            Math.ceil(
+                              questions.length / Math.ceil(questions.length / 4)
+                            )
+                          )
+                        : Math.min(6, Math.ceil(questions.length / 5))
+                    ),
+                  ].map((_, index) => {
+                    const maxSegments = window.innerWidth < 640 ? 4 : 6;
+                    const questionsPerSegment = Math.ceil(
+                      questions.length / maxSegments
+                    );
+                    const startIndex = index * questionsPerSegment;
+                    const endIndex = Math.min(
+                      startIndex + questionsPerSegment,
+                      questions.length
+                    );
+                    const segmentAnswered = questions
+                      .slice(startIndex, endIndex)
+                      .filter((q) => answers[q.id]).length;
+                    const segmentTotal = endIndex - startIndex;
+                    const isCurrent =
+                      currentQuestionIndex >= startIndex &&
+                      currentQuestionIndex < endIndex;
+
+                    return (
+                      <div
+                        key={index}
+                        className={`w-4 sm:w-6 h-2 rounded-full transition-all duration-300 ${
+                          isCurrent
+                            ? "bg-blue-500"
+                            : segmentAnswered === segmentTotal
+                            ? "bg-emerald-400"
+                            : segmentAnswered > 0
+                            ? "bg-yellow-400"
+                            : "bg-gray-300"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="ml-2 sm:ml-4 text-xs text-gray-600 whitespace-nowrap">
+                <span className="font-medium">
+                  {Object.keys(answers).length}
+                </span>
+                <span className="hidden sm:inline"> dari</span>
+                <span className="sm:hidden">/</span> {questions.length}
+              </div>
+            </div>
+
+            {/* Status indicator */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {answers[currentQuestion?.id] && (
+                <div className="inline-flex items-center gap-1 sm:gap-2 text-emerald-600 text-xs sm:text-sm font-medium bg-emerald-50 px-2 sm:px-3 py-1 rounded-full">
+                  <svg
+                    className="w-3 h-3 sm:w-4 sm:h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">Terjawab</span>
+                  <span className="sm:hidden">✓</span>
+                </div>
+              )}
+
+              {/* Next auto indicator - hidden on mobile when answered */}
+              {answers[currentQuestion?.id] &&
+                currentQuestionIndex < questions.length - 1 && (
+                  <div className="hidden sm:inline-flex items-center gap-2 text-gray-500 text-xs">
+                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
+                    <span>Otomatis lanjut...</span>
+                  </div>
+                )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
