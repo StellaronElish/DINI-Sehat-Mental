@@ -1,15 +1,58 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Stethoscope, User, Lock } from "lucide-react";
+import axios from "axios";
 
 export default function LandingPage() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showResumeModal, setShowResumeModal] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login dokter:", { username, password });
-    // TODO: Integrasikan ke backend Laravel untuk autentikasi dokter/psikolog
+    try {
+      const res = await axios.post("http://localhost:8000/api/doctor/login", {
+        username,
+        password,
+      });
+
+      if (res.data.success) {
+        localStorage.setItem("doctor_token", res.data.token);
+        window.location.href = "/dashboard";
+      } else {
+        alert("Username atau password salah");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat login");
+    }
+  };
+
+  // Cek apakah responden punya progress survey
+  useEffect(() => {
+    const savedAnswers = localStorage.getItem("survey_answers");
+    const savedIndex = localStorage.getItem("survey_index");
+
+    if (savedAnswers && savedIndex) {
+      setShowResumeModal(true);
+    }
+  }, []);
+
+  const handleResume = () => {
+    setShowResumeModal(false);
+    navigate("/questionnaire");
+  };
+
+  const handleRestart = () => {
+    localStorage.removeItem("respondent");
+    localStorage.removeItem("survey_answers");
+    localStorage.removeItem("survey_index");
+    localStorage.removeItem("respondent_name");
+    localStorage.removeItem("respondent_age");
+    localStorage.removeItem("respondent_status");
+    setShowResumeModal(false);
+    navigate("/form");
   };
 
   return (
@@ -119,6 +162,35 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
+
+          {/* 🔹 Modal Konfirmasi */}
+          {showResumeModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+                <h2 className="text-lg font-semibold text-slate-800 mb-2">
+                  Lanjutkan Survey?
+                </h2>
+                <p className="text-sm text-slate-600 mb-4">
+                  Kami mendeteksi Anda masih memiliki survey yang belum selesai.
+                  Apakah Anda ingin melanjutkan survey atau memulai dari awal?
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={handleRestart}
+                    className="px-4 py-2 rounded-lg border text-slate-600 hover:bg-slate-50"
+                  >
+                    Mulai Baru
+                  </button>
+                  <button
+                    onClick={handleResume}
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    Lanjutkan
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Calendar, Briefcase, CheckCircle2 } from "lucide-react";
 
@@ -22,6 +23,21 @@ export default function RespondentForm() {
     { value: "Contractor", label: "Contractor/Freelancer" },
     { value: "Intern", label: "Magang/Trainee" },
   ];
+  
+  useEffect(() => {
+    const saved = localStorage.getItem("respondent");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.name) setName(parsed.name);
+          if (parsed.age) setAge(parsed.age);
+          if (parsed.status) setStatus(parsed.status);
+        } catch (err) {
+          console.error("Failed to parse respondent data:", err);
+        }
+      }
+  }, []);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +79,7 @@ export default function RespondentForm() {
   };
 
   return (
+    
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-50 to-blue-50 p-6">
       <div className="max-w-lg w-full">
         <div className="text-center mb-8 transform transition-all duration-500 ease-out">
@@ -105,8 +122,10 @@ export default function RespondentForm() {
                 placeholder="Masukkan nama lengkap Anda"
                 value={name}
                 onChange={(e) => {
-                  setName(e.target.value);
-                  clearError();
+                  const newName = e.target.value;
+                  setName(newName);
+                  const updated = { name: newName, age, status };
+                  localStorage.setItem("respondent", JSON.stringify(updated));
                 }}
                 onFocus={() => setFocusedField("name")}
                 onBlur={() => setFocusedField("")}
@@ -139,9 +158,12 @@ export default function RespondentForm() {
                 placeholder="Masukkan usia Anda"
                 value={age}
                 onChange={(e) => {
-                  setAge(e.target.value);
-                  clearError();
-                }}
+                const newAge = e.target.value;
+                setAge(newAge);
+                const updated = { name, age: newAge, status };
+                localStorage.setItem("respondent", JSON.stringify(updated));
+              }}
+
                 onFocus={() => setFocusedField("age")}
                 onBlur={() => setFocusedField("")}
                 min="18"
@@ -173,8 +195,10 @@ export default function RespondentForm() {
               <select
                 value={status}
                 onChange={(e) => {
-                  setStatus(e.target.value);
-                  clearError();
+                  const newStatus = e.target.value;
+                  setStatus(newStatus);
+                  const updated = { name, age, status: newStatus };
+                  localStorage.setItem("respondent", JSON.stringify(updated));
                 }}
                 onFocus={() => setFocusedField("status")}
                 onBlur={() => setFocusedField("")}

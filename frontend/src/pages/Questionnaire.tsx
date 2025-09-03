@@ -1,12 +1,19 @@
 // src/pages/Questionnaire.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { categories } from "../data/categories";
 import { questions } from "../data/questions";
 import { calculateScores } from "../utils/Scoring";
+import axios from "axios";
 
 export default function Questionnaire() {
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, string>>(() => {
+    const saved = localStorage.getItem("survey_answers");
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
+    const saved = localStorage.getItem("survey_index");
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showResult, setShowResult] = useState(false);
 
@@ -28,44 +35,87 @@ export default function Questionnaire() {
     questions[currentQuestionIndex - 1]?.category !== currentQuestion?.category;
 
   const handleAnswer = (value: string) => {
-    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
+    const newAnswers = { ...answers, [currentQuestion.id]: value };
+    setAnswers(newAnswers);
+    localStorage.setItem("survey_answers", JSON.stringify(newAnswers));
 
-    // Auto advance after a short delay
+    // Auto advance ...
     setTimeout(() => {
       if (currentQuestionIndex < questions.length - 1) {
         setIsTransitioning(true);
         setTimeout(() => {
-          setCurrentQuestionIndex((prev) => prev + 1);
+          const nextIndex = currentQuestionIndex + 1;
+          setCurrentQuestionIndex(nextIndex);
+          localStorage.setItem("survey_index", nextIndex.toString()); // simpan posisi
           setIsTransitioning(false);
         }, 300);
       } else {
-        // Last question - show completion
         setShowResult(true);
       }
     }, 600);
-  };
+};
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentQuestionIndex((prev) => prev - 1);
+        const prevIndex = currentQuestionIndex - 1;
+        setCurrentQuestionIndex(prevIndex);
+        localStorage.setItem("survey_index", prevIndex.toString());
         setIsTransitioning(false);
       }, 300);
     }
   };
 
-  const handleSubmit = () => {
-    const scores = calculateScores(answers);
-    console.log("Skor per kategori:", scores);
-    // Redirect to results
-    window.location.href = "/results";
+  const handleSubmit = async () => {
+  const scores = calculateScores(answers);
+  const respondent = JSON.parse(localStorage.getItem("respondent") || "{}");
+
+  // Mapping perCategory ke format backend
+  const categoryScores: Record<string, number> = {};
+  Object.entries(scores.perCategory).forEach(([cat, value]) => {
+    categoryScores[`score_${cat}`] = value;
+  });
+
+  // Tentukan level stres berdasarkan jumlah kategori bermasalah
+  const countProblems = scores.problematicCategories.length;
+  let stress_level = "rendah";
+  if (countProblems >= 7) stress_level = "tinggi";
+  else if (countProblems >= 4) stress_level = "sedang";
+  else if (countProblems >= 1) stress_level = "rendah";
+
+  const payload = {
+    ...respondent,
+    ...categoryScores,
+    problematic_category: countProblems,
+    score_total: scores.total,
+    stress_level,
   };
+
+  try {
+    const res = await axios.post("http://localhost:8000/api/respondent", payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (res.status === 201) {
+      console.log("Data berhasil disimpan:", res.data);
+      localStorage.setItem("respondent_id", res.data.respondent.id);
+      localStorage.removeItem("respondent");
+      localStorage.removeItem("survey_answers");
+      localStorage.removeItem("survey_index");
+      window.location.href = "/results";
+    } else {
+      console.error("Gagal menyimpan data:", res);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
 
   if (showResult) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-md mx-auto text-center space-y-6 sm:space-y-8 bg-white p-8 sm:p-12 rounded-3xl shadow-sm border border-gray-100">
+        <div className="w-full max-w-md mx-auto text-center space-y-6 sm:space-y-8 bg-white p-8 sm:p-12 rounded-3xl shadow-sm border border-gray-100">  
           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
             <svg
               className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500"
@@ -180,8 +230,8 @@ export default function Questionnaire() {
           <div
             className={`transition-all duration-300 ${
               isTransitioning
-                ? "opacity-0 transform translate-y-8"
-                : "opacity-100 transform translate-y-0"
+                ? "opacity-0 transform translate-x-8"
+                : "opacity-100 transform translate-x-0"
             }`}
           >
             {/* Question header */}
