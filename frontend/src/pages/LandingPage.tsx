@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Stethoscope, User, Lock } from "lucide-react";
 import axios from "axios";
+import FemaleDoctor from "../assets/FemaleDoctor.png"; // 🔹 pastikan file ada
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function LandingPage() {
     }
   };
 
-  // Cek apakah responden punya progress survey
+  // Cek progress survey
   useEffect(() => {
     const savedAnswers = localStorage.getItem("survey_answers");
     const savedIndex = localStorage.getItem("survey_index");
@@ -45,12 +46,7 @@ export default function LandingPage() {
   };
 
   const handleRestart = () => {
-    localStorage.removeItem("respondent");
-    localStorage.removeItem("survey_answers");
-    localStorage.removeItem("survey_index");
-    localStorage.removeItem("respondent_name");
-    localStorage.removeItem("respondent_age");
-    localStorage.removeItem("respondent_status");
+    localStorage.clear();
     setShowResumeModal(false);
     navigate("/form");
   };
@@ -58,8 +54,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-slate-50 to-slate-100 p-6">
       <div className="max-w-6xl w-full grid md:grid-cols-2 gap-10 items-center">
-        {/* Left section: Intro */}
-        <div className="space-y-6">
+        {/* 🔹 Left: Intro + Image */}
+        <div className="space-y-6 flex flex-col items-center md:items-start">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 rounded-full bg-blue-500 grid place-items-center text-white">
               <Stethoscope className="h-6 w-6" />
@@ -67,17 +63,35 @@ export default function LandingPage() {
             <h1 className="text-3xl md:text-4xl font-bold text-slate-800">
               Sistem Analisis{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500">
-                Screening Stress Kerja
+                Screening Stress Kerja Perempuan
               </span>
             </h1>
           </div>
 
-          <p className="text-slate-600 text-base md:text-lg max-w-md">
+          <p className="text-slate-600 text-base md:text-lg max-w-md text-center md:text-left">
             Platform komprehensif untuk evaluasi kesehatan mental karyawan
             dengan analisis mendalam dan rekomendasi profesional.
           </p>
 
-          <div className="flex gap-4 flex-wrap">
+          {/* 🔹 Gambar: mobile di bawah teks, desktop center di bawah teks juga */}
+          <div className="flex justify-center md:justify-start">
+            <div
+              className="relative w-full max-w-sm md:max-w-md rounded-3xl overflow-hidden shadow-xl"
+              style={{ animation: "float 6s ease-in-out infinite" }}
+            >
+              <img
+                src={FemaleDoctor}
+                alt="Ilustrasi Dokter/Psikolog"
+                className="w-full h-auto object-cover rounded-3xl"
+              />
+              {/* Floating particles */}
+              <div className="absolute -top-4 -right-4 w-10 h-10 bg-blue-500 rounded-full opacity-20"></div>
+              <div className="absolute -bottom-6 -left-6 w-14 h-14 bg-teal-500 rounded-full opacity-20"></div>
+              <div className="absolute top-1/3 -left-4 w-6 h-6 bg-green-500 rounded-full opacity-30"></div>
+            </div>
+          </div>
+
+          <div className="flex gap-4 flex-wrap justify-center md:justify-start">
             <div className="rounded-xl border bg-white px-4 py-3 text-center shadow-sm">
               <p className="text-2xl font-bold text-blue-600">109</p>
               <p className="text-xs text-slate-600">Pertanyaan Komprehensif</p>
@@ -93,7 +107,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Right section: Cards */}
+        {/* 🔹 Right: Forms */}
         <div className="space-y-6">
           {/* Login Dokter/Psikolog */}
           <div className="rounded-2xl border bg-white shadow-md overflow-hidden">
@@ -131,11 +145,6 @@ export default function LandingPage() {
                 />
               </div>
 
-              <p className="text-xs text-slate-500">
-                <span className="font-semibold text-blue-600">Demo Login:</span>{" "}
-                Username: dokter | Password: admin123
-              </p>
-
               <button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium"
@@ -163,34 +172,34 @@ export default function LandingPage() {
         </div>
       </div>
 
-          {/* 🔹 Modal Konfirmasi */}
-          {showResumeModal && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-                <h2 className="text-lg font-semibold text-slate-800 mb-2">
-                  Lanjutkan Survey?
-                </h2>
-                <p className="text-sm text-slate-600 mb-4">
-                  Kami mendeteksi Anda masih memiliki survey yang belum selesai.
-                  Apakah Anda ingin melanjutkan survey atau memulai dari awal?
-                </p>
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={handleRestart}
-                    className="px-4 py-2 rounded-lg border text-slate-600 hover:bg-slate-50"
-                  >
-                    Mulai Baru
-                  </button>
-                  <button
-                    onClick={handleResume}
-                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-                  >
-                    Lanjutkan
-                  </button>
-                </div>
-              </div>
+      {/* 🔹 Modal Konfirmasi */}
+      {showResumeModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-lg font-semibold text-slate-800 mb-2">
+              Lanjutkan Survey?
+            </h2>
+            <p className="text-sm text-slate-600 mb-4">
+              Kami mendeteksi Anda masih memiliki survey yang belum selesai.
+              Apakah Anda ingin melanjutkan survey atau memulai dari awal?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={handleRestart}
+                className="px-4 py-2 rounded-lg border text-slate-600 hover:bg-slate-50"
+              >
+                Mulai Baru
+              </button>
+              <button
+                onClick={handleResume}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Lanjutkan
+              </button>
             </div>
-          )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
