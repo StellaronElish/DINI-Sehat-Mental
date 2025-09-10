@@ -423,6 +423,7 @@
 //   );
 // }
 
+// src/pages/Results.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -541,16 +542,16 @@ export default function Results() {
       ],
     },
     sedang: {
-      color: "blue",
-      bgGradient: "from-blue-50 to-indigo-50",
-      title: "Kondisi Normal dengan Perhatian",
-      subtitle: "Anda masih dalam kondisi yang dapat dikelola dengan baik",
+      color: "orange",
+      bgGradient: "from-orange-50 to-amber-50",
+      title: "Kondisi Sedang",
+      subtitle: "Anda perlu lebih waspada terhadap kondisi saat ini",
       message:
-        "Kondisi Anda masih dalam rentang normal. Dengan beberapa penyesuaian pola hidup dan strategi manajemen stress yang tepat, Anda dapat tetap optimal dalam menjalani aktivitas sehari-hari.",
+        "Kondisi Anda menunjukkan tingkat sedang yang memerlukan perhatian. Saatnya untuk lebih proaktif dalam mengelola stress dan melakukan penyesuaian pola hidup.",
       img: StressMedium,
-      scoreColor: "text-blue-600",
-      bgColor: "bg-blue-500",
-      borderColor: "border-blue-200",
+      scoreColor: "text-orange-600",
+      bgColor: "bg-orange-500",
+      borderColor: "border-orange-200",
       showDetailedScore: false, // Tidak perlu menampilkan detail score
       actions: [
         {
@@ -877,8 +878,8 @@ export default function Results() {
         </div>
 
         {/* Footer Note */}
-        <div className="text-center text-sm text-gray-500 pt-8 border-t border-gray-200">
-          <p>
+        <div className="text-center text-base text-gray-600 pt-10 border-t-2 border-gray-200">
+          <p className="leading-relaxed font-medium max-w-4xl mx-auto">
             Hasil assessment ini bersifat indikatif untuk membantu Anda memahami
             kondisi diri. Untuk evaluasi yang lebih komprehensif, kami
             merekomendasikan konsultasi dengan tenaga kesehatan mental
