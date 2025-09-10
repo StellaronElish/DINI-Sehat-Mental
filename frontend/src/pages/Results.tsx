@@ -517,7 +517,7 @@ export default function Results() {
       title: "Kondisi Baik & Terkendali",
       subtitle: "Anda dalam kondisi yang sangat baik!",
       message:
-        "Selamat! Kondisi mental dan fisik Anda cukup stabil. Anda memiliki kemampuan yang baik dalam mengelola stress dan menjalani aktivitas sehari-hari dengan optimal.",
+        "",
       img: StressLow,
       scoreColor: "text-emerald-600",
       bgColor: "bg-emerald-500",
@@ -547,7 +547,7 @@ export default function Results() {
       title: "Kondisi Sedang",
       subtitle: "Anda perlu lebih waspada terhadap kondisi saat ini",
       message:
-        "Kondisi Anda menunjukkan tingkat sedang yang memerlukan perhatian. Saatnya untuk lebih proaktif dalam mengelola stress dan melakukan penyesuaian pola hidup.",
+        "",
       img: StressMedium,
       scoreColor: "text-orange-600",
       bgColor: "bg-orange-500",
@@ -583,7 +583,7 @@ export default function Results() {
       subtitle:
         "Saatnya mencari bantuan profesional untuk kondisi yang lebih baik",
       message:
-        "Kondisi Anda memerlukan perhatian serius dan dukungan profesional. Ini adalah langkah positif untuk mengenali kondisi diri dan mencari bantuan yang tepat untuk pemulihan optimal.",
+        "",
       img: StressHigh,
       scoreColor: "text-red-600",
       bgColor: "bg-red-500",
@@ -718,23 +718,27 @@ export default function Results() {
               )}
 
               {/* Detailed progress bar hanya untuk tinggi */}
-              {cfg.showDetailedScore && (
-                <div className="space-y-2">
-                  <div className="w-full bg-emerald-200 rounded-full h-4 shadow-inner relative">
-                    <div
-                      className={`h-4 rounded-full ${cfg.bgColor} shadow-sm transition-all duration-1000 ease-out`}
-                      style={{
-                        width: `${problematicPercentage}%`,
-                        marginLeft: "auto",
-                      }}
-                    ></div>
+            {cfg.showDetailedScore && (
+              <div className="space-y-2">
+                <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner relative">
+                  <div
+                    className={`h-4 rounded-full ${cfg.bgColor} shadow-sm transition-all duration-1000 ease-out flex items-center justify-center`}
+                    style={{
+                      width: `${problematicPercentage}%`,
+                    }}
+                  >
+                    <span className="text-white text-xs font-medium">
+                      {cfg.title}
+                    </span>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              <p className="text-gray-700 leading-relaxed max-w-2xl mx-auto text-lg">
+
+              {/*<p className="text-gray-700 leading-relaxed max-w-2xl mx-auto text-lg">
                 {cfg.message}
-              </p>
+              </p>*/}
             </div>
 
             {/* Action Plan */}
